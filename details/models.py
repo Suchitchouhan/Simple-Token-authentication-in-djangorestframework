@@ -32,5 +32,5 @@ class otp(models.Model):
 	user=models.ForeignKey(User,on_delete=models.CASCADE, null=True)
 	number=models.CharField(default=" ",max_length=50)
 	def __str__(self):
-		return self.otp
+		return self.number
 
