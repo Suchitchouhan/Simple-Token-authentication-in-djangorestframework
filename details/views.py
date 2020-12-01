@@ -23,7 +23,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.crypto import get_random_string
 import random
 from django.core.mail import send_mail
-from school.settings import EMAIL_HOST_USER
+from school_teacher.settings import EMAIL_HOST_USER
 
 
 

@@ -1,21 +1,16 @@
-"""school_teacher URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/3.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path
+from details.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("login",login),
+    path("forget_password",forget_password.as_view()),
+    path("verify_otp",verify_otp.as_view()),
+    path("signup",signup.as_view()),
+    path("add_student",add_student.as_view()),
+    path("list_student",list_student.as_view()),
+    path("add_student_marks",add_student_marks.as_view()),
+    path("view_student_marks",view_student_marks.as_view()),
+    path("student_info",student_info)
 ]
