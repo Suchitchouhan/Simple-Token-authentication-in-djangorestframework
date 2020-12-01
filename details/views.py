@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from django.shortcuts import render
 from rest_framework.views import APIView
 from .models import *
 import json
@@ -25,7 +24,6 @@ from django.utils.crypto import get_random_string
 import random
 from django.core.mail import send_mail
 from school.settings import EMAIL_HOST_USER
-# Create your views here.
 
 
 
@@ -136,3 +134,107 @@ class signup(APIView):
             return Response({"message": "All Filled must be filled"},status=HTTP_200_OK)
 
 
+
+#In this method teacher are allowed to create students 
+class add_student(APIView):
+    permission_classes = (IsAuthenticated,)
+    @csrf_exempt
+    def post(self, request):
+        username = request.data.get("username")
+        firstname = request.data.get("firstname")
+        lastname = request.data.get("lastname")
+        email = request.data.get("email")
+        password = request.data.get("password")
+        mobile = request.data.get("mobile")
+        if check_blank_or_null([username,firstname,lastname,email,password,mobile]) == True and teacher.objects.filter(user=request.user).exists():
+            if User.objects.filter(username=username, email=email).exists():
+                return Response({"message": "Username already exists created",},status=HTTP_200_OK)
+            else:
+                user = User.objects.create_user(username=username,first_name=firstname,last_name=lastname,email=email,password=password)
+                user.save()
+                teacherO = students.objects.create()
+                teacherO.user = user
+                teacherO.mobile = mobile
+                teacherO.save()
+                return Response({"message": "Your profile sucessfully created"},status=HTTP_200_OK)
+        else:
+            return Response({"message": "All filled must be filled"},status=HTTP_200_OK)
+        	
+
+#In this method teacher are allowed to see all students 
+class list_student(APIView):
+    permission_classes = (IsAuthenticated, )
+    @csrf_exempt
+    def get(self, request):
+        context = {}
+        lis=[]
+        if teacher.objects.filter(user=request.user).exists():
+            for x in students.objects.all():
+                lis.append({"username":x.user.username,"First Name":x.user.firstname, "last Name":x.user.last_name,"email":x.user.email,"mobile":x.mobile})
+            context['student']=lis
+            return Response(context,status=HTTP_200_OK)
+        else:
+            return Response({"message": "You ARe not allowed"},status=HTTP_200_OK)
+            	
+
+
+
+
+
+#In this method teacher are allowed to add students marks 
+class add_student_marks(APIView):
+    permission_classes = (IsAuthenticated,)
+    @csrf_exempt
+    def post(self, request):
+        student_username = request.data.get("student_username")
+        subject = request.data.get("subject")
+        mark = request.data.get("mark")
+        #the next line is for validations
+        if teacher.objects.filter(user=request.user).exists() and User.objects.filter(user=student_username).exists() and check_blank_or_null([student_username,subject,mark])==True:
+            user=User.objects.get(user=student_username)
+            studentO = students.objects.get(user=user)
+            markO=markes.objects.create(student=studentO,subject=subject,marks=mark)
+            markO.save()
+            return Response({"message": "Your profile sucessfully created"},status=HTTP_200_OK)
+        else:
+            return Response({"message": "Your profile sucessfully created"},status=HTTP_200_OK)
+
+
+#In this method teacher are allowed see  there student marks by username
+class view_student_marks(APIView):
+    permission_classes = (IsAuthenticated,)
+    @csrf_exempt
+    def post(self, request):
+        student_username = request.data.get("student_username")
+        if teacher.objects.filter(user=request.user).exists() and User.objects.filter(user=student_username).exists() and check_blank_or_null([student_username,subject,mark])==True:
+            user=User.objects.get(user=student_username)
+            studentO = students.objects.get(user=user)
+            context={}
+            details = []
+            for x in markes.objects.filter(student=studentO):
+                details.append({"subject":x.subject,"mark":x.marks})
+            context['student']=details             
+            return Response({"message": context},status=HTTP_200_OK)
+        else:
+            return Response({"message": "Your profile sucessfully created"},status=HTTP_200_OK)
+    
+
+
+#In this method student are allowed see there Information
+
+@csrf_exempt
+@api_view(["GET"])
+@permission_classes((IsAuthenticated,))
+def student_info(request):
+    cust=students.objects.get(user=request.user)
+    context = {}
+    context['username'] = cust.user.username
+    context['first_name'] = cust.user.first_name
+    context['last_name'] = cust.user.last_name
+    context['email'] = cust.user.email
+    context['mobile'] = cust.mobile
+    mark = []
+    for x in markes.objects.filter(student=cust):
+        mark.append({"subject":x.subject,"mark":x.marks})
+    context['mark']=mark
+    return HttpResponse(json.dumps(context), content_type='application/json')
